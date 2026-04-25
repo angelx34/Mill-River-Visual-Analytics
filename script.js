@@ -241,7 +241,6 @@ d3.json("merged_data.json")
 
 // ──HLI_2 Visualization ───────────────────────────────────────────
 
-
 function renderHLI2Scatterplots() {
   const envDropdown = document.getElementById("EnvDropdown");
   const functDropdown = document.getElementById("FunctDropdown");
@@ -274,7 +273,8 @@ function renderHLI2Scatterplots() {
 
   let filtered = mergedData.filter(d =>
     Number.isFinite(d[envKey]) &&
-    Number.isFinite(d.density)
+    Number.isFinite(d.density) &&
+    d.density > 0
   );
 
   if (selectedGroup !== "All") {
@@ -291,11 +291,12 @@ function renderHLI2Scatterplots() {
 function drawHLI2Scatter(svg, data, allData, envKey, envLabel) {
   const width = 420;
   const height = 300;
+
   const margin = {
     top: 20,
     right: 20,
     bottom: 50,
-    left: 55
+    left: 65
   };
 
   svg.attr("viewBox", `0 0 ${width} ${height}`);
@@ -306,7 +307,7 @@ function drawHLI2Scatter(svg, data, allData, envKey, envLabel) {
       .attr("y", height / 2)
       .attr("text-anchor", "middle")
       .attr("fill", "#777")
-      .text("No data available");
+      .text("No positive density data available");
     return;
   }
 
@@ -315,7 +316,7 @@ function drawHLI2Scatter(svg, data, allData, envKey, envLabel) {
     .nice()
     .range([margin.left, width - margin.right]);
 
-  const yScale = d3.scaleLinear()
+  const yScale = d3.scaleLog()
     .domain(d3.extent(allData, d => d.density))
     .nice()
     .range([height - margin.bottom, margin.top]);
@@ -342,7 +343,7 @@ function drawHLI2Scatter(svg, data, allData, envKey, envLabel) {
 
   svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(yScale));
+    .call(d3.axisLeft(yScale).ticks(6, "~g"));
 
   svg.append("text")
     .attr("x", width / 2)
@@ -355,7 +356,7 @@ function drawHLI2Scatter(svg, data, allData, envKey, envLabel) {
     .attr("x", -height / 2)
     .attr("y", 16)
     .attr("text-anchor", "middle")
-    .text("Density");
+    .text("Density (log scale)");
 
   svg.selectAll("circle")
     .data(data)
